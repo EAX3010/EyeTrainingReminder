@@ -38,8 +38,4 @@ Eye Training Reminder is a Windows Forms application built with .NET Core 8, des
 ## Customization
 Adjust the `AppConfig` class to modify colors, timings, and other settings to suit your preferences.
 
-## Contributing
-Contributions, issues, and feature requests are welcome. Feel free to check [issues page] if you want to contribute.
 
-## Author
-Abdallah Khaled

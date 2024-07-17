@@ -4,6 +4,7 @@
     {
         // Colors
         public static Color BackgroundColor = Color.FromArgb(18, 18, 18);
+        public static Color Disabled = Color.FromArgb(189, 195, 199);
         public static Color TextColor = Color.FromArgb(220, 220, 220);
         public static Color AccentColor = Color.FromArgb(103, 152, 188);
         public static Color DrawingBackgroundColor = Color.FromArgb(30, 30, 30);
@@ -27,7 +28,7 @@
 
 #if DEBUG
         // Exercise duration
-        public static int ExerciseDuration = 30; // 30 seconds
+        public static int ExerciseDuration = 5; // 30 seconds
 #else
         // Exercise duration
         public static int ExerciseDuration = 30; // 30 seconds

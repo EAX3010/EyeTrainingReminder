@@ -3,6 +3,8 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using System.Configuration;
+using System.ComponentModel;
 
 namespace EyeTrainingReminder
 {
@@ -18,7 +20,10 @@ namespace EyeTrainingReminder
         private int countdown;
         private Panel drawingPanel;
         private Bitmap drawingBitmap;
-
+        private System.Windows.Forms.NotifyIcon notifyIcon;
+        private System.ComponentModel.IContainer notifyIconcomponents;
+        private System.Windows.Forms.ContextMenuStrip contextMenu;
+        private bool contextClose = false;
         public MainForm()
         {
             InitializeExercises();
@@ -35,8 +40,43 @@ namespace EyeTrainingReminder
             this.ForeColor = AppConfig.TextColor;
 
             SetFormSize();
-        }
 
+            this.contextMenu = new ContextMenuStrip();
+            contextMenu.Items.Add("Show", null, onClick: Show);
+            contextMenu.Items.Add("Hide", null, onClick: Hide);
+            contextMenu.Items.Add("Exit", null, onClick: Close);
+            notifyIconcomponents = new System.ComponentModel.Container();
+            notifyIcon = new System.Windows.Forms.NotifyIcon(this.notifyIconcomponents);
+            notifyIcon.Icon = new Icon("app.ico");
+            notifyIcon.Text = "EyeTrainingReminder";
+            notifyIcon.Visible = true;
+            notifyIcon.DoubleClick += Show;
+            notifyIcon.Click += Show;
+            notifyIcon.ContextMenuStrip = contextMenu;
+        }
+        private void Close(object sender, EventArgs e)
+        {
+            contextClose = true;
+            base.Close();
+        }
+        private void Hide(object sender, EventArgs e)
+        {
+            this.Hide();
+        }
+        private void Show(object sender, EventArgs e)
+        {
+            this.Show();
+        }
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
+            if (e.CloseReason == CloseReason.UserClosing && !contextClose)
+            {
+                e.Cancel = true;
+                Hide();
+            }
+        }
+        // Method to set the form size and location based on screen dimensions
         private void SetFormSize()
         {
             Rectangle screenBounds = Screen.PrimaryScreen.Bounds;
@@ -51,11 +91,13 @@ namespace EyeTrainingReminder
             ResizeControls();
         }
 
+        // Event handler for form resize
         private void MainForm_Resize(object sender, EventArgs e)
         {
             ResizeControls();
         }
 
+        // Method to resize controls based on the form size
         private void ResizeControls()
         {
             if (instructionLabel != null)
@@ -92,7 +134,7 @@ namespace EyeTrainingReminder
             this.Invalidate();
         }
 
-
+        // Method to initialize exercises
         private void InitializeExercises()
         {
             exercises = new List<EyeExercise>
@@ -105,6 +147,7 @@ namespace EyeTrainingReminder
             };
         }
 
+        // Method to initialize timers
         private void InitializeTimers()
         {
             hourlyTimer = new System.Windows.Forms.Timer
@@ -121,6 +164,7 @@ namespace EyeTrainingReminder
             exerciseTimer.Tick += OnExerciseTimerElapsed;
         }
 
+        // Method to initialize controls
         private void InitializeControls()
         {
             instructionLabel = new Label
@@ -168,19 +212,21 @@ namespace EyeTrainingReminder
             ResizeControls();
         }
 
+        // Event handler for drawing panel paint event
         private void DrawingPanel_Paint(object sender, PaintEventArgs e)
         {
             e.Graphics.DrawImage(drawingBitmap, 0, 0);
         }
 
+        // Event handler for hourly timer elapsed event
         private void OnHourlyTimerElapsed(object sender, EventArgs e)
         {
             this.Show();
             this.TopMost = true;
-            this.TopMost = false;
             ResetExercises();
         }
 
+        // Event handler for exercise timer elapsed event
         private void OnExerciseTimerElapsed(object sender, EventArgs e)
         {
             countdown--;
@@ -199,19 +245,21 @@ namespace EyeTrainingReminder
             if (countdown <= 0)
             {
                 exerciseTimer.Stop();
-                nextButton.Enabled = true;
-                if (currentExerciseIndex < exercises.Count - 1)
+                ChangeButtonState();
+                currentExerciseIndex++;
+                if (currentExerciseIndex < exercises.Count)
                 {
                     nextButton.Text = "Next Exercise";
-                    currentExerciseIndex++;
                 }
                 else
                 {
                     nextButton.Text = "Finish";
+                    this.Hide();
                 }
             }
         }
 
+        // Event handler for next button click event
         private void NextButton_Click(object sender, EventArgs e)
         {
             if (currentExerciseIndex < exercises.Count)
@@ -221,34 +269,51 @@ namespace EyeTrainingReminder
             else
             {
                 ResetExercises();
-                this.Hide();
             }
         }
 
+        // Method to change the state of the next button
+        public void ChangeButtonState()
+        {
+            if (nextButton.Enabled == false)
+            {
+                nextButton.Enabled = true;
+                nextButton.BackColor = AppConfig.AccentColor;
+            }
+            else
+            {
+                nextButton.Enabled = false;
+                nextButton.BackColor = AppConfig.Disabled;
+            }
+        }
+
+        // Method to start the next exercise
         private void StartNextExercise()
         {
             var exercise = exercises[currentExerciseIndex];
             instructionLabel.Text = $"{exercise.Name}\n{exercise.Instructions}";
             countdown = exercise.DurationSeconds;
             countdownLabel.Text = $"Time left: {countdown} seconds";
-            nextButton.Enabled = false;
-
+            ChangeButtonState();
             ClearDrawingArea();
 
             drawingPanel.Invalidate();
             exerciseTimer.Start();
         }
 
+        // Method to reset exercises
         private void ResetExercises()
         {
             currentExerciseIndex = 0;
             nextButton.Text = "Start Exercises";
             nextButton.Enabled = true;
+            nextButton.BackColor = AppConfig.AccentColor;
             instructionLabel.Text = "Time for eye exercises!\nClick 'Start Exercises' to begin.";
             countdownLabel.Text = "Time left: 0 seconds";
             ClearDrawingArea();
         }
 
+        // Method to clear the drawing area
         private void ClearDrawingArea()
         {
             using (Graphics g = Graphics.FromImage(drawingBitmap))
@@ -258,20 +323,7 @@ namespace EyeTrainingReminder
             drawingPanel.Invalidate();
         }
 
-        protected override void OnFormClosing(FormClosingEventArgs e)
-        {
-            if (e.CloseReason == CloseReason.UserClosing)
-            {
-                e.Cancel = true;
-                this.Hide();
-            }
-            else
-            {
-                base.OnFormClosing(e);
-            }
-        }
-
-        // Polished drawing methods for exercises
+        // Method to draw focus shift exercise
         private void DrawFocusShift(Graphics g, Rectangle bounds, int timeLeft)
         {
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
@@ -289,6 +341,7 @@ namespace EyeTrainingReminder
             DrawPolishedCircle(g, rightX, centerY, radius, Color.FromArgb(200, 152, 188, 103));
         }
 
+        // Method to draw figure eight exercise
         private void DrawFigureEight(Graphics g, Rectangle bounds, int timeLeft)
         {
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
@@ -300,6 +353,7 @@ namespace EyeTrainingReminder
             DrawPolishedCircle(g, x, y, radius, Color.FromArgb(200, 188, 103, 152));
         }
 
+        // Method to draw diagonal stretch exercise
         private void DrawDiagonalStretch(Graphics g, Rectangle bounds, int timeLeft)
         {
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
@@ -331,6 +385,7 @@ namespace EyeTrainingReminder
             DrawPolishedCircle(g, x, y, radius, Color.FromArgb(200, 152, 103, 188));
         }
 
+        // Method to draw circular motion exercise
         private void DrawCircularMotion(Graphics g, Rectangle bounds, int timeLeft)
         {
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
@@ -342,6 +397,7 @@ namespace EyeTrainingReminder
             DrawPolishedCircle(g, x, y, radius, Color.FromArgb(200, 188, 152, 103));
         }
 
+        // Method to draw a polished circle with gradient and subtle glow
         private void DrawPolishedCircle(Graphics g, int centerX, int centerY, int radius, Color baseColor)
         {
             // Create gradient brush

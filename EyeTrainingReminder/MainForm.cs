@@ -116,7 +116,8 @@ namespace EyeTrainingReminder
                     (this.ClientSize.Width - drawingPanel.Width) / 2,
                     instructionLabel.Bottom + (int)(this.ClientSize.Height * 0.02)
                 );
-                drawingBitmap = new Bitmap(drawingPanel.Width, drawingPanel.Height);
+                if (drawingPanel.Width != 0 && drawingPanel.Height != 0)
+                    drawingBitmap = new Bitmap(drawingPanel.Width, drawingPanel.Height);
             }
 
             if (nextButton != null)

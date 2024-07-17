@@ -20,15 +20,15 @@
 
         // Fonts
         public static Font InstructionFont = new Font("Arial", 12, FontStyle.Regular);
-        public static Font CountdownFont = new Font("Arial", 10, FontStyle.Bold);
+        public static Font CountdownFont = new Font("Arial", 12, FontStyle.Bold);
 
         // Timers
-        public static int HourlyTimerInterval = 3600000; // 1 hour in milliseconds
+        public static int HourlyTimerInterval = 36000; // 1 hour in milliseconds
         public static int ExerciseTimerInterval = 1000; // 1 second
 
 #if DEBUG
         // Exercise duration
-        public static int ExerciseDuration = 5; // 30 seconds
+        public static int ExerciseDuration = 1; // 30 seconds
 #else
         // Exercise duration
         public static int ExerciseDuration = 30; // 30 seconds
